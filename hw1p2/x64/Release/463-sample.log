@@ -1,0 +1,50 @@
+﻿  pch.cpp
+  URLParse.cpp
+  DNS.cpp
+  main.cpp
+  winsock.cpp
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(77,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+          with
+          [
+              _Rep=__int64
+          ]
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(77,9): message : consider using '%lld' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(77,9): message : consider using '%Id' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(77,9): message : consider using '%I64d' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(97,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+          with
+          [
+              _Rep=__int64
+          ]
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(97,9): message : consider using '%lld' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(97,9): message : consider using '%Id' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(97,9): message : consider using '%I64d' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(110,5): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(151,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+          with
+          [
+              _Rep=__int64
+          ]
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(151,9): message : consider using '%lld' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(151,9): message : consider using '%Id' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(151,9): message : consider using '%I64d' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(250,10): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+          with
+          [
+              _Rep=__int64
+          ]
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(250,10): message : consider using '%lld' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(250,10): message : consider using '%Id' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\winsock.cpp(250,10): message : consider using '%I64d' in the format string
+  Generating Code...
+  Generating code
+  0 of 46 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+HTMLParser_release_x64.lib(HTMLParserBase.obj) : warning LNK4099: PDB 'HTMLParser.pdb' was not found with 'HTMLParser_release_x64.lib(HTMLParserBase.obj)' or at 'C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\x64\Release\HTMLParser.pdb'; linking object as if no debug info
+HTMLParser_release_x64.lib(stdafx.obj) : warning LNK4099: PDB 'HTMLParser.pdb' was not found with 'HTMLParser_release_x64.lib(stdafx.obj)' or at 'C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\x64\Release\HTMLParser.pdb'; linking object as if no debug info
+HTMLParser_release_x64.lib(IRLparser.obj) : warning LNK4099: PDB 'HTMLParser.pdb' was not found with 'HTMLParser_release_x64.lib(IRLparser.obj)' or at 'C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\x64\Release\HTMLParser.pdb'; linking object as if no debug info
+HTMLParser_release_x64.lib(IRLBuffer.obj) : warning LNK4099: PDB 'HTMLParser.pdb' was not found with 'HTMLParser_release_x64.lib(IRLBuffer.obj)' or at 'C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\x64\Release\HTMLParser.pdb'; linking object as if no debug info
+HTMLParser_release_x64.lib(URL.obj) : warning LNK4099: PDB 'HTMLParser.pdb' was not found with 'HTMLParser_release_x64.lib(URL.obj)' or at 'C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\x64\Release\HTMLParser.pdb'; linking object as if no debug info
+  463-sample.vcxproj -> C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p2\x64\Release\hw1p1.exe
