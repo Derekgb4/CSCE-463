@@ -11,6 +11,7 @@
 #include <cstring>
 
 
+
 URLParse::URLParse() {
 }
 
@@ -73,7 +74,7 @@ URLParse::URLParse(string url) {
 		request = request + "?" + query;
 	}
 
-	cout << "host " << host << ", port " << port << ", request " << request << endl;
+	cout << "host " << host << ", port " << port << endl; // ", request " << request << endl;
 
 
 }
@@ -88,4 +89,14 @@ char* URLParse::getBaseURL() {
 		char* baseUrl = new char[baseurl.length() + 1];
 		strcpy_s(baseUrl, (int)strlen(baseurl.c_str()) + 1, baseurl.c_str());
 		return baseUrl;
+}
+
+
+char* URLParse::getFileName() {
+	ostringstream base;
+	base << host + ".html";
+	string baseurl = base.str();
+	char* FileName = new char[baseurl.length() + 1];
+	strcpy_s(FileName, (int)strlen(baseurl.c_str()) + 1, baseurl.c_str());
+	return FileName;
 }

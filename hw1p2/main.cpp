@@ -4,6 +4,8 @@
 #include "pch.h"
 #include "URLParse.h"
 #include "socket.h"
+#include <iostream>
+#include <fstream>
 
 
 using namespace std;
@@ -17,6 +19,7 @@ public:
 
 // function inside winsock.cpp
 void winsock_test (URLParse url);
+void UrlDownload(char* filename);
 
 // this function is where threadA starts
 UINT threadA (LPVOID pParam)
@@ -63,11 +66,42 @@ UINT threadB (LPVOID pParam)
 	return 0;
 }
 
+bool fexists(const char* filename)
+{
+	ifstream file(filename);
+	if (file) {
+		return 1;
+	}else
+		return 0;
+}
+
 int main(int argc, char* argv[])
 {
-	string website = argv[1];
-	URLParse ParsedURL = URLParse(website);
-	winsock_test(ParsedURL);
-	
+	//cout << argv[1] << ":" << argv[2] << endl;
+	if (argc == 2) {						//if there is only 1 argument perform p1
+		string website = argv[1];
+		URLParse ParsedURL = URLParse(website);
+		winsock_test(ParsedURL);
+	}
+	else if (argc == 3) {					// if there is 2 arguments perform p2
+		if (strcmp(argv[1], "1") == 0) {		//checking for string numbers, needs to be 1
+			//printf("Correct number of strings\n");
+
+			if (fexists(argv[2])) {
+				//printf("file found");
+				UrlDownload(argv[2]);
+			}
+			else {
+				printf("specified file not found");
+				return 0;
+			}
+
+
+		}
+		else if (strcmp(argv[1], "1") != 0) {
+			printf("Invalid Number of Threads, please speicfy 1 string");
+			return 0;
+		}
+	}	
 	return 0; 
 }

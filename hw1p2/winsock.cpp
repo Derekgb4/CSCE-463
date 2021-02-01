@@ -169,11 +169,11 @@ void winsock_test(URLParse url)
 		auto start = high_resolution_clock::now();
 		//parse html
 
-		ofstream file("GivenWebAddress.html");
+		ofstream file(url.getFileName());
 		file << result;
 		file.close();
 		 
-		char filename[] = "GivenWebAddress.html";
+		char* filename = url.getFileName();
 		
 		// open html file
 		HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,

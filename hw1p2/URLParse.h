@@ -30,5 +30,6 @@ public:
 
 	URLParse(string url);
 	char* getBaseURL();
+	char* getFileName();
 	
 };
