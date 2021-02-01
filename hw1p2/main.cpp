@@ -8,6 +8,7 @@
 #include <fstream>
 
 
+
 using namespace std;
 // this class is passed to all threads, acts as shared memory
 class Parameters {
