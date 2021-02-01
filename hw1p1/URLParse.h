@@ -29,5 +29,6 @@ public:
 	~URLParse();
 
 	URLParse(string url);
+	char* getBaseURL();
 	
 };

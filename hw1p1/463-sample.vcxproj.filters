@@ -41,5 +41,11 @@
     <ClInclude Include="URLParse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="HTMLParserBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
