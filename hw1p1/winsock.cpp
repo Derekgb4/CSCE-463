@@ -8,6 +8,8 @@
 #include <iostream>
 #include <chrono.>
 #include <fstream>
+#include <string>
+
 #pragma warning(disable : 4996)
 
 using namespace std;
@@ -87,7 +89,7 @@ void winsock_test(URLParse url)
 	}
 
 	// send HTTP requests here
-	string request = "GET / HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0Host: www.tamu.edu\r\nConnection: close\r\n\r\n";
+	string request = "GET / HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0Host: 128.194.135.72\r\nConnection: close\r\n\r\n";
 	/*char crequete[5000];
 	strncpy(crequete, request.c_str(), request.size()+1);
 	send(sock, crequete, strlen(crequete), 0);*/
@@ -99,22 +101,25 @@ void winsock_test(URLParse url)
 		return;
 	}
 	//
-#define DEFAULT_BUFLEN 32000
-	int recvbuflen = 32000;
+#define DEFAULT_BUFLEN 4000
+	int recvbuflen = 4000;
 	int iResult;
 	char recvbuf[DEFAULT_BUFLEN];
 	int bytes = 0;
+	string result;
 	do {
 		iResult = recv(sock, recvbuf, recvbuflen, 0);
 		if (iResult > 0) {
 			//printf("Bytes received: %d\n", iResult);
 			bytes = bytes + iResult;
+			result = result + recvbuf;
+			//cout << endl << recvbuf << endl;
 			if (sizeof(recvbuf) == iResult) {
 				char* newBuf = new char[sizeof(recvbuf) + recvbuflen];
 				for (int i = 0; i < sizeof(recvbuf); i++) {
 					newBuf[i] = recvbuf[i];
 				}
-				delete[] recvbuf;
+//				delete[] recvbuf;
 				char recvbuf[sizeof(newBuf)];
 				for (int i = 0; i < sizeof(recvbuf); i++) {
 					recvbuf[i] = newBuf[i];
@@ -132,7 +137,37 @@ void winsock_test(URLParse url)
 
 	stop = high_resolution_clock::now();
 	duration = duration_cast<microseconds>(stop - start);
-	printf("done in %d ms with %d bytes", duration.count() / 1000, bytes);
+	printf("done in %d ms with %d bytes\n", duration.count() / 1000, bytes);
+
+	cout << '\t' << "Verifying header. . . status code ";
+	string resultTemp = result;
+	string HTTPCheck = resultTemp.substr(0, resultTemp.find(" "));
+	string afterCheck = resultTemp.erase(0, resultTemp.find(" ") + 1);
+	string StatusCode = afterCheck.substr(0, afterCheck.find(" "));
+	if (HTTPCheck == "HTTP/1.0" || "HTTP/1.1") {
+		//cout << "sucess" << endl;
+	}
+	else {
+		cout << "failed with non-HTTP header" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	if (StatusCode == "200") {
+		cout << StatusCode << endl;
+		cout << "\tParsing page. . . ";
+		auto start = high_resolution_clock::now();
+		//parse html
+		auto stop = high_resolution_clock::now();
+		auto duration = duration_cast<microseconds>(stop - start);
+		printf("done in %d ms with links\n", duration.count() / 1000);
+		cout << endl << "--------------------------------------------" << endl << result << endl;
+	}
+	else {
+		cout << endl << "--------------------------------------------" << endl << result << endl;
+	}
+	
+
+	
 
 	// close the socket to this server; open again for the next one
 	closesocket (sock);

@@ -1,25 +1,32 @@
 ﻿  winsock.cpp
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(73,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(75,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
           with
           [
               _Rep=__int64
           ]
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(73,9): message : consider using '%lld' in the format string
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(73,9): message : consider using '%Id' in the format string
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(73,9): message : consider using '%I64d' in the format string
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(97,5): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(117,21): warning C4154: deletion of an array expression; conversion to pointer supplied
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(135,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(75,9): message : consider using '%lld' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(75,9): message : consider using '%Id' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(75,9): message : consider using '%I64d' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(99,5): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(140,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
           with
           [
               _Rep=__int64
           ]
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(135,9): message : consider using '%lld' in the format string
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(135,9): message : consider using '%Id' in the format string
-E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(135,9): message : consider using '%I64d' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(140,9): message : consider using '%lld' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(140,9): message : consider using '%Id' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(140,9): message : consider using '%I64d' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(162,10): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+          with
+          [
+              _Rep=__int64
+          ]
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(162,10): message : consider using '%lld' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(162,10): message : consider using '%Id' in the format string
+C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\winsock.cpp(162,10): message : consider using '%I64d' in the format string
   Generating code
   2 of 151 functions ( 1.3%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    1 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  463-sample.vcxproj -> E:\Users\derekgb4\source\repos\hw1p1\hw1p1\x64\Release\hw1p1.exe
+  463-sample.vcxproj -> C:\Users\derekgb4\Documents\GitHub\CSCE-463\hw1p1\x64\Release\hw1p1.exe
