@@ -9,6 +9,8 @@
 #include <chrono.>
 #include <fstream>
 #include <string>
+#include "HTMLParserBase.h"
+#include <cstring>
 
 #pragma warning(disable : 4996)
 
@@ -74,19 +76,28 @@ void winsock_test(URLParse url)
 	auto duration = duration_cast<microseconds>(stop - start);
 	printf("done in %d ms, found %s\n", duration.count() / 1000, inet_ntoa (server.sin_addr));
 
+	cout << "      * Connecting on page. . . ";
+	start = high_resolution_clock::now();
+
 	// setup the port # and protocol type
 	server.sin_family = AF_INET;
 	server.sin_port = htons (80);		// host-to-network flips the byte order
 
 
-	cout << '\t' << "Loading. . . ";
-	start = high_resolution_clock::now();
+	
 	// connect to the server on port 80
 	if (connect (sock, (struct sockaddr*) &server, sizeof(struct sockaddr_in)) == SOCKET_ERROR)
 	{
 		printf ("Connection error: %d\n", WSAGetLastError ());
 		return;
 	}
+
+	stop = high_resolution_clock::now();
+	duration = duration_cast<microseconds>(stop - start);
+	printf("done in %d ms\n", duration.count() / 1000);
+
+	cout << '\t' << "Loading. . . ";
+	start = high_resolution_clock::now();
 
 	// send HTTP requests here
 	string request = "GET / HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0Host: 128.194.135.72\r\nConnection: close\r\n\r\n";
@@ -154,12 +165,89 @@ void winsock_test(URLParse url)
 
 	if (StatusCode == "200") {
 		cout << StatusCode << endl;
-		cout << "\tParsing page. . . ";
+		cout << "      + Parsing page. . . ";
 		auto start = high_resolution_clock::now();
 		//parse html
+
+		ofstream file("GivenWebAddress.html");
+		file << result;
+		file.close();
+		 
+		char filename[] = "GivenWebAddress.html";
+		
+		// open html file
+		HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL, NULL);
+		// process errors
+		if (hFile == INVALID_HANDLE_VALUE)
+		{
+			printf("CreateFile failed with %d\n", GetLastError());
+			exit(EXIT_FAILURE);
+		}
+
+		// get file size
+		LARGE_INTEGER li;
+		BOOL bRet = GetFileSizeEx(hFile, &li);
+		// process errors
+		if (bRet == 0)
+		{
+			printf("GetFileSizeEx error %d\n", GetLastError());
+			exit(EXIT_FAILURE);
+		}
+
+		// read file into a buffer
+		int fileSize = (DWORD)li.QuadPart;			// assumes file size is below 2GB; otherwise, an __int64 is needed
+		DWORD bytesRead;
+		// allocate buffer
+		char* fileBuf = new char[fileSize];
+		// read into the buffer
+		bRet = ReadFile(hFile, fileBuf, fileSize, &bytesRead, NULL);
+		// process errors
+		if (bRet == 0 || bytesRead != fileSize)
+		{
+			printf("ReadFile failed with %d\n", GetLastError());
+			exit(EXIT_FAILURE);
+		}
+
+		// done with the file
+		CloseHandle(hFile);
+
+		// create new parser object
+		HTMLParserBase* parser = new HTMLParserBase;
+
+		char* baseUrl = url.getBaseURL();		// where this page came from; needed for construction of relative links
+		
+
+		int nLinks;
+		char* linkBuffer = parser->Parse(fileBuf, fileSize, baseUrl, (int)strlen(baseUrl), &nLinks);
+
+		// check for errors indicated by negative values
+		if (nLinks < 0)
+			nLinks = 0;
+
+		//printf("Found %d links:\n", nLinks);
+
+		// print each URL; these are NULL-separated C strings
+		for (int i = 0; i < nLinks; i++)
+		{
+			//printf("%s\n", linkBuffer);
+			linkBuffer += strlen(linkBuffer) + 1;
+		}
+
+		delete parser;		// this internally deletes linkBuffer
+		delete fileBuf;
+
+
+
+
+
 		auto stop = high_resolution_clock::now();
 		auto duration = duration_cast<microseconds>(stop - start);
-		printf("done in %d ms with links\n", duration.count() / 1000);
+
+
+
+
+		printf("done in %d ms with %d links\n", duration.count() / 1000, nLinks);
 		cout << endl << "--------------------------------------------" << endl << result << endl;
 	}
 	else {
