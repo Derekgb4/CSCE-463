@@ -11,20 +11,37 @@
 #include <string>
 #include "HTMLParserBase.h"
 #include <cstring>
+#include <unordered_set>
+#include <stdio.h>
+#include <sstream>
+#include <cstring>
+
 
 #pragma warning(disable : 4996)
 
 using namespace std;
 using namespace std::chrono;
 #pragma comment(lib, "ws2_32.lib")
+unordered_set<string> seenIP; 
 
-void winsock_test(URLParse url)
+unordered_set<string> UniqueIP(string IP, unordered_set<string> seenIP) {
+
+	int prevSize = seenIP.size();
+	seenIP.insert(IP);
+	if (seenIP.size() > prevSize) { // unique host
+		printf("passed\n");
+	}
+	else {
+		printf("failed\n");
+			return seenIP;
+	}
+	// duplicate host
+	return seenIP;
+}
+
+void winsock_test(URLParse url, bool args)
 {
 	// string pointing to an HTTP server (DNS name or IP)
-	//char str [] = "www.tamu.edu";
-	//char str [] = "128.194.135.72";
-	//URLParse url = url;
-	//cout << "testing: " << url.host << endl;
 	WSADATA wsaData;
 
 	//Initialize WinSock; once per program run
@@ -43,7 +60,8 @@ void winsock_test(URLParse url)
 		WSACleanup ();	
 		return;
 	}
-
+	cout << '\t' << "Doing DNS. . . ";
+	auto start = high_resolution_clock::now();
 	// structure used in DNS lookups
 	struct hostent *remote; 
 
@@ -51,9 +69,6 @@ void winsock_test(URLParse url)
 	struct sockaddr_in server;
 
 	// first assume that the string is an IP address
-	cout << '\t' << "Doing DNS. . . ";
-	auto start = high_resolution_clock::now();
-
 	DWORD IP = inet_addr (url.host.c_str());
 	if (IP == INADDR_NONE)
 	{
@@ -72,11 +87,39 @@ void winsock_test(URLParse url)
 		server.sin_addr.S_un.S_addr = IP;
 	}
 
+	ostringstream base;
+	base << inet_ntoa(server.sin_addr);
+	string IPAddress = base.str();
+	
 	auto stop = high_resolution_clock::now();
 	auto duration = duration_cast<microseconds>(stop - start);
 	printf("done in %d ms, found %s\n", duration.count() / 1000, inet_ntoa (server.sin_addr));
 
+	if (args == 1) {
+		cout << "\tChecking IP uniqueness. . . ";
+		//cout << "testing IP value:" << IP << endl;
+		int prevSize = seenIP.size();
+		seenIP = UniqueIP(IPAddress, seenIP);
+		if (seenIP.size() > prevSize) { // unique host
+			
+		}
+		else {
+			return;
+		}
+	}
+	if (args == 1) {
+		cout << "\tConnecting on robots. . . ";
+		auto start = high_resolution_clock::now();
+		
+		auto stop = high_resolution_clock::now();
+		auto duration = duration_cast<microseconds>(stop - start);
+		printf("done in %d ms\n", duration.count() / 1000);
+	}
+
+
 	cout << "      * Connecting on page. . . ";
+
+
 	start = high_resolution_clock::now();
 
 	// setup the port # and protocol type
@@ -98,19 +141,15 @@ void winsock_test(URLParse url)
 
 	cout << '\t' << "Loading. . . ";
 	start = high_resolution_clock::now();
-
 	// send HTTP requests here
-	string request = "GET / HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0Host: 128.194.135.72\r\nConnection: close\r\n\r\n";
-	/*char crequete[5000];
-	strncpy(crequete, request.c_str(), request.size()+1);
-	send(sock, crequete, strlen(crequete), 0);*/
+	string request = "GET / HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0Host: " + url.host + "\r\nConnection: close\r\n\r\n";
 
 	char* sendBuf = new char[request.size() + 1];
 	strcpy(sendBuf, request.c_str());
 	if (send(sock, sendBuf, request.size(), 0) == SOCKET_ERROR) {
 		printf("Send error: %d\n", WSAGetLastError());
 		return;
-	}
+	} 
 	//
 #define DEFAULT_BUFLEN 4000
 	int recvbuflen = 4000;
@@ -118,37 +157,58 @@ void winsock_test(URLParse url)
 	char recvbuf[DEFAULT_BUFLEN];
 	int bytes = 0;
 	string result;
-	do {
-		iResult = recv(sock, recvbuf, recvbuflen, 0);
-		if (iResult > 0) {
-			//printf("Bytes received: %d\n", iResult);
-			bytes = bytes + iResult;
-			result = result + recvbuf;
-			//cout << endl << recvbuf << endl;
-			if (sizeof(recvbuf) == iResult) {
-				char* newBuf = new char[sizeof(recvbuf) + recvbuflen];
-				for (int i = 0; i < sizeof(recvbuf); i++) {
-					newBuf[i] = recvbuf[i];
+	timeval timeout;
+	timeout.tv_sec = 10;
+	timeout.tv_usec = 0;
+	fd_set readset;
+	int ret;
+	bool check = true;
+	clock_t timer = clock();
+
+	
+		timeout.tv_sec -= floor(((clock() - timer) / (double)CLOCKS_PER_SEC));
+		//timeout.tv_usec = 0;
+		FD_ZERO(&readset);
+		FD_SET(sock, &readset);
+		if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
+			do {
+				check = true;
+				iResult = recv(sock, recvbuf, recvbuflen, 0);
+				if (iResult > 0) {
+					
+					//printf("Bytes received: %d\n", iResult);
+					bytes = bytes + iResult;
+					result = result + recvbuf;
+					//cout << endl << recvbuf << endl;
+					if (sizeof(recvbuf) == iResult) {
+						char* newBuf = new char[sizeof(recvbuf) + recvbuflen];
+						for (int i = 0; i < sizeof(recvbuf); i++) {
+							newBuf[i] = recvbuf[i];
+						}
+						//				delete[] recvbuf;
+						char recvbuf[sizeof(newBuf)];
+						for (int i = 0; i < sizeof(recvbuf); i++) {
+							recvbuf[i] = newBuf[i];
+						}
+						delete[] newBuf;
+						//delete[] recvbuf;
+					}	
 				}
-//				delete[] recvbuf;
-				char recvbuf[sizeof(newBuf)];
-				for (int i = 0; i < sizeof(recvbuf); i++) {
-					recvbuf[i] = newBuf[i];
+				else if (iResult == 0) {
+					closesocket(sock);
 				}
-				delete[] newBuf;
-			}
-		}
-		else if (iResult == 0) {
-			closesocket(sock);
+				else {
+					printf("recv failed: %d\n", WSAGetLastError());
+				}
+			} while (iResult > 0);
+			stop = high_resolution_clock::now();
+			duration = duration_cast<microseconds>(stop - start);
+			printf("done in %d ms with %d bytes\n", duration.count() / 1000, bytes);
 		}
 		else {
-			printf("recv failed: %d\n", WSAGetLastError());
+			cout << "failed with timeout" << endl;
+			return;
 		}
-	} while (iResult > 0);
-
-	stop = high_resolution_clock::now();
-	duration = duration_cast<microseconds>(stop - start);
-	printf("done in %d ms with %d bytes\n", duration.count() / 1000, bytes);
 
 	cout << '\t' << "Verifying header. . . status code ";
 	string resultTemp = result;
@@ -162,18 +222,21 @@ void winsock_test(URLParse url)
 		cout << "failed with non-HTTP header" << endl;
 		exit(EXIT_FAILURE);
 	}
-
-	if (StatusCode == "200") {
+	if (StatusCode[0] != '4') {
+		cout << StatusCode << endl;
+		return;
+	}
+	if (StatusCode[0] == '4') {
 		cout << StatusCode << endl;
 		cout << "      + Parsing page. . . ";
 		auto start = high_resolution_clock::now();
 		//parse html
 
-		ofstream file("GivenWebAddress.html");
+		ofstream file(url.getFileName());
 		file << result;
 		file.close();
 		 
-		char filename[] = "GivenWebAddress.html";
+		char* filename = url.getFileName();
 		
 		// open html file
 		HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
@@ -248,11 +311,16 @@ void winsock_test(URLParse url)
 
 
 		printf("done in %d ms with %d links\n", duration.count() / 1000, nLinks);
-		cout << endl << "--------------------------------------------" << endl << result << endl;
+		if (args == 0) {
+			cout << endl << "--------------------------------------------" << endl << result << endl;
+		}
 	}
 	else {
-		cout << endl << "--------------------------------------------" << endl << result << endl;
-	}
+		cout << StatusCode << endl;
+		if (args == 0) {
+			cout << endl << "--------------------------------------------" << endl << result << endl;
+		}
+		}
 	
 
 	
