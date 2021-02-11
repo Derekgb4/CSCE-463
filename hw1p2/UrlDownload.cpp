@@ -10,13 +10,6 @@ using namespace std;
 void winsock_test(URLParse url, bool args);
 
 unordered_set<string> UniqueHost(string host, unordered_set<string> seenHosts) {
-	//DWORD IP = inet_addr(url.host.c_str());
-	//unordered_set<DWORD> seenIPs;
-	//seenIPs.insert(IP);
-	
-	//---------
-	//unordered_set<string> seenHosts;
-
 	int prevSize = seenHosts.size();
 	seenHosts.insert(host);
 	if (seenHosts.size() > prevSize) { // unique host
