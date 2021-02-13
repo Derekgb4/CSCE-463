@@ -92,6 +92,7 @@ bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, boo
 			return robotBool;
 		}
 
+
 		auto stop = high_resolution_clock::now();
 		auto duration = duration_cast<microseconds>(stop - start);
 		printf("done in %d ms\n", duration.count() / 1000);
@@ -102,9 +103,7 @@ bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, boo
 		cout << '\t' << "Loading. . . ";
 		start = high_resolution_clock::now();
 		// send HTTP requests here
-		//cout << endl << "path in head request: " << path << endl;
-		string request = "HEAD / HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0Host: " + host + "\r\nConnection: close\r\n\r\n";
-		//cout << "string head request: " << request << endl;
+		string request = "HEAD /robots.txt HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0\r\nHost: " + host + "\r\nConnection: close\r\n\r\n";
 
 		char* sendBuf = new char[request.size() + 1];
 		strcpy(sendBuf, request.c_str());
@@ -112,6 +111,7 @@ bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, boo
 			printf("Send error: %d\n", WSAGetLastError());
 			return robotBool;
 		}
+
 		//
 #define DEFAULT_BUFLEN 4000
 		int recvbuflen = 4000;
@@ -134,9 +134,12 @@ bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, boo
 		if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
 			do {
 				check = true;
+				if (sizeof(recvbuf) / sizeof(char) >= 16000) {
+					printf("failed with exceeding max\n");
+					return robotBool;
+				}else
 				iResult = recv(sock, recvbuf, recvbuflen, 0);
 				if (iResult > 0) {
-
 					//printf("Bytes received: %d\n", iResult);
 					bytes = bytes + iResult;
 					pageData = pageData + recvbuf;
@@ -171,7 +174,7 @@ bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, boo
 			return robotBool;
 		}
 		//pageData;
-
+		//cout << endl << "PAGE DATA:" << endl << pageData << endl;
 		///////////////////////////////////////////////////
 		cout << '\t' << "Verifying header. . . status code ";
 		string resultTemp = pageData;
@@ -343,7 +346,11 @@ string loadPage(SOCKET sock, URLParse url) {
 	cout << '\t' << "Loading. . . ";
 	auto start = high_resolution_clock::now();
 	// send HTTP requests here
-	string request = "GET / HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0Host: " + url.host + "\r\nConnection: close\r\n\r\n";
+	string requestPath = url.path.substr(0, url.path.size()-1);
+	//cout << endl << "This is the request portion: " << requestPath << ":" << endl;
+	//if ( requestPath !=)
+	string request = "GET /" +requestPath+ " HTTP/1.0\r\nUser-agent: Derekgb4Crawler/1.0\r\nHost: " + url.host + "\r\nConnection: close\r\n\r\n";
+	//cout << endl << "This is the Get Request: " << endl << request << endl;
 
 	char* sendBuf = new char[request.size() + 1];
 	strcpy(sendBuf, request.c_str());
@@ -373,6 +380,11 @@ string loadPage(SOCKET sock, URLParse url) {
 	if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
 		do {
 			check = true;
+			if (sizeof(recvbuf) / sizeof(char) >= 16000) {
+				printf("failed with exceeding max\n");
+				return pageData;
+			}
+			else
 			iResult = recv(sock, recvbuf, recvbuflen, 0);
 			if (iResult > 0) {
 
@@ -412,15 +424,40 @@ string loadPage(SOCKET sock, URLParse url) {
 	return pageData;
 }
 
-struct sockaddr_in dnsLookup(URLParse url) {
+
+
+bool dnsLookup(URLParse url) {
 	auto start = high_resolution_clock::now();
 	// structure used in DNS lookups
 	struct hostent* remote;
 
 	// structure for connecting to server
 	struct sockaddr_in server;
-
 	cout << '\t' << "Doing DNS. . . ";
+	// first assume that the string is an IP address
+	DWORD IP = inet_addr(url.host.c_str());
+	if (IP == INADDR_NONE)
+	{
+		// if not a valid IP, then do a DNS lookup
+		if ((remote = gethostbyname(url.host.c_str())) == NULL)
+		{
+			printf("failed with 11001\n");
+			return 0;
+		}
+		else {
+			return 1;
+		}
+	}
+}
+
+
+struct sockaddr_in dnsDoLookup(URLParse url) {
+	auto start = high_resolution_clock::now();
+	// structure used in DNS lookups
+	struct hostent* remote;
+
+	// structure for connecting to server
+	struct sockaddr_in server;
 
 	// first assume that the string is an IP address
 	DWORD IP = inet_addr(url.host.c_str());
@@ -429,8 +466,6 @@ struct sockaddr_in dnsLookup(URLParse url) {
 		// if not a valid IP, then do a DNS lookup
 		if ((remote = gethostbyname(url.host.c_str())) == NULL)
 		{
-			printf("Invalid string: neither FQDN, nor IP address\n");
-			exit(EXIT_FAILURE);
 		}
 		else // take the first IP address and copy into sin_addr
 			memcpy((char*)&(server.sin_addr), remote->h_addr, remote->h_length);
@@ -472,19 +507,23 @@ void winsock_test(URLParse url, bool args)
 		return;
 	}
 
-	struct sockaddr_in server = dnsLookup(url);
+	if (dnsLookup(url)) {
+		struct sockaddr_in server = dnsDoLookup(url);
 
-	ostringstream base;
-	base << inet_ntoa(server.sin_addr);
-	string IPAddress = base.str();
 
-	ipCheck(IPAddress, args);
-	bool robotBool = robotRequest(server, sock, url.path, url.host, args);
-	if (robotBool) {
-		pageConnect(server, sock);
-		string pageData = loadPage(sock, url);
-		string StatusCode = checkHTTP(pageData);
-		pageParse(StatusCode, pageData, url, args);
+		ostringstream base;
+		base << inet_ntoa(server.sin_addr);
+		string IPAddress = base.str();
+
+		ipCheck(IPAddress, args);
+		bool robotBool = robotRequest(server, sock, url.path, url.host, args);
+		if (robotBool) {
+			pageConnect(server, sock);
+			string pageData = loadPage(sock, url);
+			//cout << endl << "This is the page data:\n" << pageData << endl;
+			string StatusCode = checkHTTP(pageData);
+			pageParse(StatusCode, pageData, url, args);
+		}
 	}
 	// close the socket to this server; open again for the next one
 	closesocket (sock);

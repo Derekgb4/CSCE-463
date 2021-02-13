@@ -24,6 +24,7 @@ public:
 	bool Bquery;
 	bool Bpath;
 	bool Bfragment;
+	bool Bscheme;
 
 	URLParse();
 	~URLParse();

@@ -23,15 +23,17 @@ URLParse::URLParse(string url) {
 	if (url.substr(0, 7) == "http://") {
 		scheme = "http://";
 		url.erase(0, 7);
+		Bscheme = 1;
 	}
 	else {
-		printf("Incorrect scheme");
-		exit(EXIT_FAILURE);
+		//printf("Incorrect scheme");
+		Bscheme = 0;
 	}
 
 	if (url.find("#") == -1) {
 		Bfragment = 0;
-	}else {
+	}
+	else {
 		Bfragment = 1;
 		fragment = url.substr(url.find("#") + 1);
 		url.erase(url.find("#"));
@@ -39,16 +41,18 @@ URLParse::URLParse(string url) {
 
 	if (url.find("?") == -1) {
 		Bquery = 0;
-	}else {
+	}
+	else {
 		Bquery = 1;
 		query = url.substr(url.find("?") + 1);
 		url.erase(url.find("?"));// = url.substr(0, url.find("?"));
 	}
-	
+
 	if (url.find("/") == -1) {
 		Bpath = 0;
 		path = "/";
-	}else if (url.find("/") > 0){
+	}
+	else if (url.find("/") > 0) {
 		Bpath = 1;
 		path = url.substr(url.find("/") + 1);
 		url = url.substr(0, url.find("/"));
@@ -58,7 +62,7 @@ URLParse::URLParse(string url) {
 		port = 80;
 	}
 	else if (url.find(":") > 0) {
-		
+
 		port = stoi(url.substr(url.find(":") + 1));
 		url = url.substr(0, url.find(":"));
 	}
@@ -70,13 +74,13 @@ URLParse::URLParse(string url) {
 	else {
 		request = "/" + path;
 	}
-	
+
 	if (Bquery) {
 		request = request + "?" + query;
 	}
-
-	cout << "host " << host << ", port " << port << endl; // ", request " << request << endl;
-
+	if (Bscheme) {
+		cout << "host " << host << ", port " << port << endl; // ", request " << request << endl;
+	}
 
 }
 

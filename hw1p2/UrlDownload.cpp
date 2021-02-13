@@ -35,15 +35,20 @@ void UrlDownload(char* filename)
 		if (fgets(mystring, 200, pFile)) {
 			string website(mystring);
 			URLParse ParsedURL = URLParse(website);
-			printf("\tChecking host uniqueness. . . ");
-			int prevSize = seenHosts.size();
-			seenHosts = UniqueHost(ParsedURL.getURL(), seenHosts);
-			if (seenHosts.size() > prevSize) { // unique host
-				winsock_test(ParsedURL, 1);
+			if (!ParsedURL.Bscheme) {
+				printf("failed with invalid scheme\n");
 			}
 			else {
-				
+				printf("\tChecking host uniqueness. . . ");
+				int prevSize = seenHosts.size();
+				seenHosts = UniqueHost(ParsedURL.getURL(), seenHosts);
+				if (seenHosts.size() > prevSize) { // unique host
+					winsock_test(ParsedURL, 1);
+				}
+				else {
 
+
+				}
 			}
 			
 		}
