@@ -32,5 +32,7 @@ public:
 	char* getBaseURL();
 	char* getFileName();
 	string getURL();
+	string getpath();
+	string generateRequest(string requestType, URLParse url);
 	
 };

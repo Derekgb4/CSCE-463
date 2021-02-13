@@ -98,6 +98,10 @@ string URLParse::getURL() {
 	return host;
 }
 
+string URLParse::getpath() {
+	return path;
+}
+
 char* URLParse::getFileName() {
 	ostringstream base;
 	base << host + ".html";
