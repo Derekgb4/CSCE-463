@@ -24,6 +24,7 @@ public:
 	bool Bquery;
 	bool Bpath;
 	bool Bfragment;
+	bool Bscheme;
 
 	URLParse();
 	~URLParse();
@@ -32,5 +33,7 @@ public:
 	char* getBaseURL();
 	char* getFileName();
 	string getURL();
+	string getpath();
+	string generateRequest(string requestType, URLParse url);
 	
 };

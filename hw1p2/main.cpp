@@ -83,6 +83,9 @@ int main(int argc, char* argv[])
 
 		string website = argv[1];
 		URLParse ParsedURL = URLParse(website);
+		if (!ParsedURL.Bscheme){
+			printf("failed with invalid scheme");
+		}
 		winsock_test(ParsedURL, 0);
 	}
 	else if (argc == 3) {					// if there is 2 arguments perform p2
