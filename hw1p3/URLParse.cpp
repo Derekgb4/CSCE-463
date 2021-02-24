@@ -79,7 +79,7 @@ URLParse::URLParse(string url) {
 		request = request + "?" + query;
 	}
 	if (Bscheme) {
-		cout << "host " << host << ", port " << port << endl; // ", request " << request << endl;
+		//cout << "host " << host << ", port " << port << endl; // ", request " << request << endl;
 	}
 
 }
