@@ -1,0 +1,22 @@
+﻿  pch.cpp
+  URLParse.cpp
+  DNS.cpp
+  main.cpp
+  winsock.cpp
+E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(73,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+          with
+          [
+              _Rep=__int64
+          ]
+E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(73,9): message : consider using '%lld' in the format string
+E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(73,9): message : consider using '%I64d' in the format string
+E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(117,21): warning C4154: deletion of an array expression; conversion to pointer supplied
+E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(135,9): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type '_Rep'
+          with
+          [
+              _Rep=__int64
+          ]
+E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(135,9): message : consider using '%lld' in the format string
+E:\Users\derekgb4\source\repos\hw1p1\hw1p1\winsock.cpp(135,9): message : consider using '%I64d' in the format string
+  Generating Code...
+  463-sample.vcxproj -> E:\Users\derekgb4\source\repos\hw1p1\hw1p1\Debug\hw1p1.exe
