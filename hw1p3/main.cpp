@@ -8,6 +8,7 @@
 #include <fstream>
 #include <queue>
 #include <vector>
+#include <chrono.>
 #include <unordered_set>
 #include "HTMLParserBase.h"
 #include <stdio.h>
@@ -15,10 +16,12 @@
 #include <cstring>
 #include <sstream>
 #pragma warning(disable : 4996)
+#pragma once
 
 
 
 using namespace std;
+using namespace std::chrono;
 // this class is passed to all threads, acts as shared memory
 struct Parameters {
 
@@ -54,6 +57,7 @@ struct Parameters {
 	int otherxx;
 	UINT64 downloadedTotal;
 };
+
 
 // function inside winsock.cpp
 void winsock_test(URLParse url, bool args);
@@ -154,7 +158,8 @@ bool robotRequests(sockaddr_in server, SOCKET sock, string path, string host)
 	if (WSAStartup(wVersionRequested, &wsaData) != 0) {
 		printf("WSAStartup error %d\n", WSAGetLastError());
 		WSACleanup();
-		exit(EXIT_FAILURE);
+		//cout << "here1" << endl;
+		return robotBool;
 	}
 
 	// open a TCP socket
@@ -213,7 +218,7 @@ bool robotRequests(sockaddr_in server, SOCKET sock, string path, string host)
 	if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
 		//do {
 		check = true;
-		if (sizeof(recvbuf) / sizeof(char) >= 16000) {
+		if (sizeof(recvbuf) >= 16000) {
 			//printf("failed with exceeding max\n");
 			return robotBool;
 		}
@@ -333,7 +338,7 @@ string loadPages(SOCKET sock, URLParse url) {
 	if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
 		do {
 			check = true;
-			if (sizeof(recvbuf) / sizeof(char) >= 16000) {
+			if (sizeof(recvbuf) >= 2000000) {
 				//printf("failed with exceeding max\n");
 				return pageData;
 			}
@@ -389,7 +394,8 @@ string checkHTTPs(string pageData) {
 	}
 	else {
 		//cout << "failed with non-HTTP header" << endl;
-		exit(EXIT_FAILURE);
+		//cout << "here2" << endl;
+		return NULL;
 	}
 }
 
@@ -416,17 +422,22 @@ int pageParses(string StatusCode, string result, URLParse url) {
 		if (hFile == INVALID_HANDLE_VALUE)
 		{
 			//printf("CreateFile failed with %d\n", GetLastError());
-			exit(EXIT_FAILURE);
+			//cout << "here3" << endl;
+			CloseHandle(hFile);
+			return 0;
 		}
 
 		// get file size
+
 		LARGE_INTEGER li;
 		BOOL bRet = GetFileSizeEx(hFile, &li);
 		// process errors
 		if (bRet == 0)
 		{
-			//printf("GetFileSizeEx error %d\n", GetLastError());
-			exit(EXIT_FAILURE);
+			printf("GetFileSizeEx error %d\n", GetLastError());
+			//cout << "here4" << endl;
+			CloseHandle(hFile);
+			return 0;
 		}
 
 		// read file into a buffer
@@ -440,7 +451,9 @@ int pageParses(string StatusCode, string result, URLParse url) {
 		if (bRet == 0 || bytesRead != fileSize)
 		{
 			//printf("ReadFile failed with %d\n", GetLastError());
-			exit(EXIT_FAILURE);
+			//cout << "here5" << endl;
+			CloseHandle(hFile);
+			return 0;
 		}
 
 		// done with the file
@@ -489,12 +502,12 @@ UINT fileSharedQueue(LPVOID queueParams) {
 	int fileSize = input.tellg();
 	cout << "Opened " << p->inputFile << " with size " << fileSize << endl;
 
-	char mystring[300];
+	char mystring[2000];
 	FILE* pFile;
 	pFile = fopen(filename, "r");
 
 	while (!feof(pFile)) {
-		if (fgets(mystring, 200, pFile)) {
+		if (fgets(mystring, 2000, pFile)) {
 			//cout << "this is the test string: " << mystring << endl;
 			WaitForSingleObject(urlListEmptyS, INFINITE);
 			p->urls.emplace(URLParse(mystring));
@@ -531,6 +544,15 @@ UINT crawlThread(LPVOID crawlParams) {
 
 		if (urls->size() == 0) {
 
+			ReleaseMutex(urlQueueM);
+			ReleaseSemaphore(urlListFullS, 1, NULL);
+
+			WaitForSingleObject(mutex, INFINITE);
+			p->currentThreads--;
+			ReleaseMutex(mutex);
+			return 0;
+		}
+		else if (urls->size() < 0) {
 			ReleaseMutex(urlQueueM);
 			ReleaseSemaphore(urlListFullS, 1, NULL);
 
@@ -862,22 +884,22 @@ UINT statThread(LPVOID statParams) {
 	int pendingQueueSize = urls->size();
 	int extractedUrls = p->extractedUrls;
 
-
-
-	clock_t start = clock();
 	int time = 0;
 	int urldiff = 0;
 	int downloaddiff = 0;
 	while (1) {
 		urldiff = p->successfullurlsCrawled;
 		downloaddiff = p->downloadedTotal;
+		if (p->currentThreads == 0) {
+			break;
+		}
 		Sleep(2000);
 		if (p->currentThreads == 0) {
 			break;
 		}
 		time += 2.0;
 		printf("[%3d] %5d Q %6d E %7d H %6d D %6d I %5d R %5d C %5d L %4dK\n", time, p->currentThreads, urls->size(), p->extractedUrls, seenHosts->size(), p->successfulldnsNum, seenIps->size(), p->robotpassNum, p->successfullurlsCrawled, p->totalLinks/1000);
-		printf("       *** crawling %.1f pps @ %.3f Mbps\n", (static_cast<double>(p->successfullurlsCrawled)-static_cast<double>(urldiff))/ static_cast<double>(time), (static_cast<double>(p->downloadedTotal)/(static_cast<double>(time*1000000))));
+		printf("       *** crawling %.1f pps @ %.1f Mbps\n", (static_cast<double>(p->successfullurlsCrawled)-static_cast<double>(urldiff))/ static_cast<double>(time), ((static_cast<double>(p->downloadedTotal)-static_cast<double>(downloaddiff))/(static_cast<double>(time*125000))));
 		
 		urldiff = p->successfullurlsCrawled - urldiff;
 		downloaddiff = p->downloadedTotal - downloaddiff;
@@ -945,6 +967,7 @@ int main(int argc, char* argv[])
 		parameters.fivexx = 0;
 		parameters.otherxx = 0;
 
+		auto start = high_resolution_clock::now();
 		// read file and populate shared queue
 		HANDLE Queue = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)fileSharedQueue, &parameters, 0, NULL);
 		WaitForSingleObject(Queue, INFINITE);
@@ -972,18 +995,18 @@ int main(int argc, char* argv[])
 		WaitForSingleObject(statHandle, INFINITE);
 		CloseHandle(statHandle);
 
+		auto stop = high_resolution_clock::now();
+		auto duration = duration_cast<microseconds>(stop - start);
+		double time = duration.count() / 1000000;
+		//cout << "total download" << parameters.downloadedTotal;
+
 		// cleanup 
-		printf("number of unique hosts %i\n", parameters.uniquehostNum);
-		printf("number of unique IPs %i\n", parameters.uniqueipNum);
-		printf("number of extracted urls %i\n", parameters.extractedUrls);
-		printf("number of attempted robots %i\n", parameters.attemptedRobots);
-		printf("number of pages parsed %i\n", parameters.pagesParsed);
-		printf("number of 2xx codes %i\n", parameters.twoxx);
-		printf("number of 3xx codes %i\n", parameters.threexx);
-		printf("number of 4xx codes %i\n", parameters.fourxx);
-		printf("number of 5xx codes %i\n", parameters.fivexx);
-		printf("number of other codes %i\n", parameters.otherxx);
-		printf("links parsed %i\n", parameters.totalLinks);
+		printf("\nExtracted %i URLS @ %.0f/s\n", parameters.extractedUrls, static_cast<double>(parameters.extractedUrls)/time);
+		printf("Looked up %i DNS names @ %.0f/s\n", parameters.uniquehostNum, static_cast<double>(parameters.uniquehostNum) / time);
+		printf("Attempted %i robots @ %.0f/s\n", parameters.attemptedRobots, static_cast<double>(parameters.attemptedRobots) / time);
+		printf("Crawled %i pages @ %.0f/s (%.1f MB)\n", parameters.successfullurlsCrawled, static_cast<double>(parameters.successfullurlsCrawled) / time, static_cast<double>(parameters.downloadedTotal/100000.0));
+		printf("Parsed %i links @ %.0f/s\n", parameters.totalLinks, static_cast<double>(parameters.totalLinks) / time);
+		printf("HTTP codes: 2xx = %i, 3xx = %i, 4xx = %i, 5xx = %i, other = %i\n", parameters.twoxx, parameters.threexx, parameters.fourxx, parameters.fivexx, parameters.otherxx);
 		return 0;
 	}
 	return 0;
