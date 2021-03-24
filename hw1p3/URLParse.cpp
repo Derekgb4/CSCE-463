@@ -88,11 +88,9 @@ URLParse::~URLParse() {
 }
 
 char* URLParse::getBaseURL() {
-	ostringstream base;
-	base << "http://" << host;
-		string baseurl = base.str();
+		string baseurl = "http://" + host;
 		char* baseUrl = new char[baseurl.length() + 1];
-		strcpy_s(baseUrl, (int)strlen(baseurl.c_str()) + 1, baseurl.c_str());
+		strcpy_s(baseUrl, baseurl.length() + 1, baseurl.c_str());
 		return baseUrl;
 }
 

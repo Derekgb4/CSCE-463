@@ -24,7 +24,7 @@ using namespace std;
 using namespace std::chrono;
 #pragma comment(lib, "ws2_32.lib")
 unordered_set<string> seenIP; 
-
+/*
 unordered_set<string> UniqueIP(string IP, unordered_set<string> seenIP) {
 
 	int prevSize = seenIP.size();
@@ -39,7 +39,9 @@ unordered_set<string> UniqueIP(string IP, unordered_set<string> seenIP) {
 	// duplicate host
 	return seenIP;
 }
+*/
 
+/*
 void ipCheck(string IPAddress, bool args) {
 	if (args == 1) {
 		cout << "\tChecking IP uniqueness. . . ";
@@ -54,6 +56,7 @@ void ipCheck(string IPAddress, bool args) {
 		}
 	}
 }
+*/
 
 bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, bool args)
 {
@@ -119,22 +122,16 @@ bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, boo
 		int iResult;
 		char recvbuf[DEFAULT_BUFLEN];
 		int bytes = 0;
-		timeval timeout;
-		timeout.tv_sec = 10;
-		timeout.tv_usec = 0;
-		fd_set readset;
-		int ret;
-		bool check = true;
-		clock_t timer = clock();
+		fd_set fd;
+		FD_ZERO(&fd);
+		FD_SET(sock, &fd);
+		const timeval timeout = { 10,0 };
+		clock_t time_elaps;
+		time_elaps = clock();
+		int good = select(0, &fd, NULL, NULL, &timeout);
 
-
-		timeout.tv_sec -= floor(((clock() - timer) / (double)CLOCKS_PER_SEC));
-		//timeout.tv_usec = 0;
-		FD_ZERO(&readset);
-		FD_SET(sock, &readset);
-		if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
+		if (good > 0) {
 			do {
-				check = true;
 				if (sizeof(recvbuf) / sizeof(char) >= 16000) {
 					printf("failed with exceeding max\n");
 					return robotBool;
@@ -170,8 +167,8 @@ bool robotRequest(sockaddr_in server, SOCKET sock, string path, string host, boo
 			auto duration = duration_cast<microseconds>(stop - start);
 			printf("done in %d ms with %d bytes\n", duration.count() / 1000, bytes);
 		}
-		else {
-			cout << "failed with timeout" << endl;
+		else if (&timeout){
+			//cout << "failed with timeout" << endl;
 			return robotBool;
 		}
 		//pageData;
@@ -365,22 +362,16 @@ string loadPage(SOCKET sock, URLParse url) {
 	int iResult;
 	char recvbuf[DEFAULT_BUFLEN];
 	int bytes = 0;
-	timeval timeout;
-	timeout.tv_sec = 10;
-	timeout.tv_usec = 0;
-	fd_set readset;
-	int ret;
-	bool check = true;
-	clock_t timer = clock();
+	fd_set fd;
+	FD_ZERO(&fd);
+	FD_SET(sock, &fd);
+	const timeval timeout = { 10,0 };
+	clock_t time_elaps;
+	time_elaps = clock();
+	int good = select(0, &fd, NULL, NULL, &timeout);
 
-
-	timeout.tv_sec -= floor(((clock() - timer) / (double)CLOCKS_PER_SEC));
-	//timeout.tv_usec = 0;
-	FD_ZERO(&readset);
-	FD_SET(sock, &readset);
-	if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
+	if (good > 0) {
 		do {
-			check = true;
 			if (sizeof(recvbuf) / sizeof(char) >= 16000) {
 				printf("failed with exceeding max\n");
 				return pageData;
@@ -418,8 +409,8 @@ string loadPage(SOCKET sock, URLParse url) {
 		auto duration = duration_cast<microseconds>(stop - start);
 		printf("done in %d ms with %d bytes\n", duration.count() / 1000, bytes);
 	}
-	else {
-		cout << "failed with timeout" << endl;
+	else if (&timeout) {
+		//cout << "failed with timeout" << endl;
 		return pageData;
 	}
 	return pageData;
@@ -516,7 +507,7 @@ void winsock_test(URLParse url, bool args)
 		base << inet_ntoa(server.sin_addr);
 		string IPAddress = base.str();
 
-		ipCheck(IPAddress, args);
+		//ipCheck(IPAddress, args);
 		bool robotBool = robotRequest(server, sock, url.path, url.host, args);
 		if (robotBool) {
 			pageConnect(server, sock);

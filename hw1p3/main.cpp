@@ -24,8 +24,6 @@ struct Parameters {
 
 	HANDLE mutex;
 	HANDLE urlListM;
-	HANDLE listEmptyS;
-	HANDLE listFullS;
 	HANDLE QueueM;
 	HANDLE hostM;
 	HANDLE IPM;
@@ -123,6 +121,7 @@ unordered_set<string> UniqueIP(string IP, unordered_set<string> seenIP) {
 	return seenIP;
 }
 
+
 void pageConnects(sockaddr_in server, SOCKET sock) {
 	//cout << "      * Connecting on page. . . ";
 
@@ -197,22 +196,16 @@ bool robotRequests(sockaddr_in server, SOCKET sock, string path, string host)
 	int iResult;
 	char recvbuf[DEFAULT_BUFLEN];
 	int bytes = 0;
-	timeval timeout;
-	timeout.tv_sec = 10;
-	timeout.tv_usec = 0;
-	fd_set readset;
-	int ret;
-	bool check = true;
-	clock_t timer = clock();
 
+	fd_set fd;
+	FD_ZERO(&fd);
+	FD_SET(sock, &fd);
+	const timeval timeout = { 10,0 };
+	clock_t time_elaps;
+	time_elaps = clock();
+	int good = select(0, &fd, NULL, NULL, &timeout);
 
-	timeout.tv_sec -= floor(((clock() - timer) / (double)CLOCKS_PER_SEC));
-	//timeout.tv_usec = 0;
-	FD_ZERO(&readset);
-	FD_SET(sock, &readset);
-	if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
-		//do {
-		check = true;
+	if (good > 0) {
 		if (sizeof(recvbuf) / sizeof(char) >= 16000) {
 			//printf("failed with exceeding max\n");
 			return robotBool;
@@ -245,15 +238,9 @@ bool robotRequests(sockaddr_in server, SOCKET sock, string path, string host)
 				//delete[] recvbuf;
 			}
 		}
-		//else if (iResult == 0) {
-			//closesocket(sock);
-		//}
-		//else {
-			//printf("recv failed: %d\n", WSAGetLastError());
-		//}
-	//} while (iResult > 0);
+		
 	}
-	else if (ret == 0) {
+	else if (&timeout) {
 		//cout << "failed with timeout" << endl;
 		return robotBool;
 	}
@@ -317,22 +304,17 @@ string loadPages(SOCKET sock, URLParse url) {
 	int iResult;
 	char recvbuf[DEFAULT_BUFLEN];
 	int bytes = 0;
-	timeval timeout;
-	timeout.tv_sec = 10;
-	timeout.tv_usec = 0;
-	fd_set readset;
-	int ret;
-	bool check = true;
-	clock_t timer = clock();
+	fd_set fd;
+	FD_ZERO(&fd);
+	FD_SET(sock, &fd);
+	const timeval timeout = { 10,0 };
+	clock_t time_elaps;
+	time_elaps = clock();
+	int good = select(0, &fd, NULL, NULL, &timeout);
 
-
-	timeout.tv_sec -= floor(((clock() - timer) / (double)CLOCKS_PER_SEC));
-	//timeout.tv_usec = 0;
-	FD_ZERO(&readset);
-	FD_SET(sock, &readset);
-	if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
+	if (good > 0) {
 		do {
-			check = true;
+
 			if (sizeof(recvbuf) / sizeof(char) >= 16000) {
 				//printf("failed with exceeding max\n");
 				return pageData;
@@ -370,7 +352,7 @@ string loadPages(SOCKET sock, URLParse url) {
 		} while (iResult > 0);
 	}
 	else {
-		//cout << "failed with timeout" << endl;
+		//cout << "failed with " << endl;
 		//pageData = "";
 		return pageData;
 	}
@@ -479,8 +461,6 @@ UINT fileSharedQueue(LPVOID queueParams) {
 	string fileLine;
 	ifstream input(p->inputFile, ios::binary);
 	HANDLE urlListM = p->urlListM;
-	HANDLE urlListFullS = p->listFullS;
-	HANDLE urlListEmptyS = p->listEmptyS;
 	int numLines = p->numLines;
 	char* filename = p->filename;
 
@@ -496,9 +476,9 @@ UINT fileSharedQueue(LPVOID queueParams) {
 	while (!feof(pFile)) {
 		if (fgets(mystring, 200, pFile)) {
 			//cout << "this is the test string: " << mystring << endl;
-			WaitForSingleObject(urlListEmptyS, INFINITE);
+;
 			p->urls.emplace(URLParse(mystring));
-			ReleaseSemaphore(urlListFullS, 1, NULL);
+
 		}
 	}
 	//printf("size is %i\n", p->urls.size());
@@ -514,8 +494,6 @@ UINT crawlThread(LPVOID crawlParams) {
 	unordered_set<string>* seenHosts = &p->seenHosts;
 	unordered_set<string>* seenIps = &p->seenIps;
 	HANDLE urlListM = p->urlListM;
-	HANDLE urlListFullS = p->listFullS;
-	HANDLE urlListEmptyS = p->listEmptyS;
 	HANDLE urlQueueM = p->QueueM;
 	HANDLE mutex = p->mutex;
 	HANDLE hostM = p->hostM;
@@ -526,13 +504,12 @@ UINT crawlThread(LPVOID crawlParams) {
 
 	while (TRUE) {
 
-		WaitForSingleObject(urlListFullS, INFINITE);
+		
 		WaitForSingleObject(urlQueueM, INFINITE);
 
 		if (urls->size() == 0) {
 
 			ReleaseMutex(urlQueueM);
-			ReleaseSemaphore(urlListFullS, 1, NULL);
 
 			WaitForSingleObject(mutex, INFINITE);
 			p->currentThreads--;
@@ -540,20 +517,11 @@ UINT crawlThread(LPVOID crawlParams) {
 			return 0;
 		}
 
-		URLParse ParsedURL = urls->front();
+		URLParse ParsedURL = urls->front();  //for the current thread set ParsedURL as the front URL and then pop safely still in the above mutex
+		urls->pop(); //pop so no other threads grab the same url. A semaphor was not needed to do this function because our mutexes are hard locks that keep the critical sections, global variables 
+						// and global classes are kept safe from multiple threads grabbing and updating variables at the same time. A try catch should not be needed because of this said protection.
 
-		try {
-			ParsedURL = urls->front();
-			urls->pop();
-		}
-		catch (int errno) {
-			ReleaseMutex(urlQueueM);
-			ReleaseSemaphore(urlListFullS, 1, NULL);
-			continue;
-		}
-
-		ReleaseMutex(urlQueueM);
-		ReleaseSemaphore(urlListFullS, 1, NULL);
+		ReleaseMutex(urlQueueM); //whenever this thread has safely gotten its unique (no other threads grabbed the same) release the mutex
 
 		//increases extractedUrls safely
 		WaitForSingleObject(mutex, INFINITE);
@@ -611,9 +579,9 @@ UINT crawlThread(LPVOID crawlParams) {
 			int prevSize = seenIps->size();
 
 			seenIps->insert(IPAddress);
-			//cout << "seenIp size: " << seenIps->size() << endl;
+			
 			if (seenIps->size() != prevSize) {
-				//printf("unique Host\n");
+				
 				p->uniqueipNum++;
 				ReleaseMutex(IPM);
 
@@ -674,22 +642,18 @@ UINT crawlThread(LPVOID crawlParams) {
 				int iResult;
 				char recvbuf[DEFAULT_BUFLEN];
 				int bytes = 0;
-				timeval timeout;
-				timeout.tv_sec = 10;
-				timeout.tv_usec = 0;
-				fd_set readset;
 				int ret;
-				bool check = true;
-				clock_t timer = clock();
+			
 
+				fd_set fd;
+				FD_ZERO(&fd);
+				FD_SET(sock, &fd); //honesly not really sure how this and the line above work, from reading around you need it to do the timeout properly i just don't know why
+				const timeval timeout = { 10,0 }; //sets the timeout to 10 seconds.
+				clock_t timeElapsed;
+				timeElapsed = clock();
+				int good = select(0, &fd, NULL, NULL, &timeout); // used for the timeout, it will check to see if the fd_set fd is readable and as long as it is will return a 1
 
-				timeout.tv_sec -= floor(((clock() - timer) / (double)CLOCKS_PER_SEC));
-				//timeout.tv_usec = 0;
-				FD_ZERO(&readset);
-				FD_SET(sock, &readset);
-				if ((ret = select(1, &readset, 0, 0, &timeout)) > 0) {
-					//do {
-					check = true;
+				if (good > 0) {
 					if (sizeof(recvbuf) / sizeof(char) >= 16000) {
 						//printf("failed with exceeding max\n");
 						continue;
@@ -723,11 +687,10 @@ UINT crawlThread(LPVOID crawlParams) {
 						}
 					}
 				}
-				else if (ret == 0) {
-					//cout << "failed with timeout" << endl;
+				else if (&timeout) { //if the timeout is reached (which I set to 10s) then we will arrive here
 					continue;
 				}
-				else {
+				else { //I do not think this will ever be reached, the only way we would reach here is if the fd_set fd is unreadable, which it always should be
 					//cout << "connection error: " << WSAGetLastError << endl;
 					continue;
 				}
@@ -835,7 +798,7 @@ UINT crawlThread(LPVOID crawlParams) {
 					int numLinks = pageParses(StatusCode, pageData, ParsedURL);
 					//cout << "number of links found: " << numLinks << endl;
 					WaitForSingleObject(mutex, INFINITE);
-					p->totalLinks += numLinks;
+					p->totalLinks = numLinks + p->totalLinks;
 					ReleaseMutex(mutex);
 				}
 
@@ -915,8 +878,6 @@ int main(int argc, char* argv[])
 		///////////////////
 		parameters.mutex = CreateMutex(NULL, 0, NULL);
 		parameters.urlListM = CreateMutex(NULL, 0, NULL);
-		parameters.listEmptyS = CreateSemaphore(NULL, numLines, numLines, NULL);
-		parameters.listFullS = CreateSemaphore(NULL, 1, numLines, NULL);
 		parameters.QueueM = CreateMutex(NULL, 0, NULL);
 		parameters.hostM = CreateMutex(NULL, 0, NULL);
 		parameters.IPM = CreateMutex(NULL, 0, NULL);
