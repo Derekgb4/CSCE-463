@@ -119,6 +119,7 @@ public:
 				return INVALID_NAME;
 			}
 			memcpy((char*)&(remote.sin_addr), host->h_addr, host->h_length);
+			
 		}
 		else {
 			//cout << "target host is an ip" << endl;
@@ -152,17 +153,17 @@ public:
 			float loadTimes = (temp);
 
 			printf("[ %.3f] --> SYN 0 (attempt %i of 3, RTO 1.000) to %s\n", loadTimes / 1000, count, targetHost); //need to fix SYN to grab non static value, also need to get the targetHost ip
-			if (sendto(sock, (char*)sh, sizeof(SenderSynHeader), 0, (sockaddr*)&remote, sizeof(remote)) == SOCKET_ERROR) {
+			if (int size = (sendto(sock, (char*)sh, sizeof(SenderSynHeader), 0, (sockaddr*)&remote, sizeof(remote))) == SOCKET_ERROR) {
 				//printf(": sendto() generated error %d\n", WSAGetLastError());
-				closesocket(sock);
+				//closesocket(sock);
 				status = FAILED_SEND;
-				cout << "you made it past here " << endl;
+				//cout << "you made it past here" << endl;
 				return status;
 			}
-			else if (sendto(sock, (char*)sh, sizeof(SenderSynHeader), 0, (sockaddr*)&remote, sizeof(remote)) != SOCKET_ERROR) { //i think this actually need to be set to >0 but idk yet
+			else //if (size > 0) { //i think this actually need to be set to >0 but idk yet
 				status = STATUS_OK;
-				cout << "you made it past here 2" << endl;
-			}
+				//cout << "you made it past here, size of send: " << size << endl;
+			//}
 			
 
 
@@ -174,6 +175,14 @@ public:
 				continue;
 			}
 			else if (status == STATUS_OK) { //need to ask for ack --------------------------------------------------------------------------code stuck here
+				
+				SOCKET sock = socket(AF_INET, SOCK_DGRAM, 0);
+				if (sock == INVALID_SOCKET) {
+					printf("socket() generated error %d\n", WSAGetLastError());
+					WSACleanup();
+					exit(EXIT_FAILURE);
+				}
+
 				fd_set fd;
 				FD_ZERO(&fd);
 				FD_SET(sock, &fd);
@@ -182,6 +191,7 @@ public:
 				synack_time = clock();
 				int good = select(0, &fd, NULL, NULL, &RTO);
 				
+				cout << "test: " << good << endl;
 				if (good > 0) {
 					char Rbuffer[sizeof(SenderSynHeader)];
 					int length = sizeof(remote);
@@ -191,7 +201,7 @@ public:
 						synack_time = clock() - synack_time;
 						float loadTime = (synack_time);
 						printf("[% .3f] <-- failed recvfrom with %d\n",loadTime, WSAGetLastError());
-						closesocket(sock);
+						//closesocket(sock);
 						return FAILED_RECV;
 					}
 					ReceiverHeader *rh = (ReceiverHeader*)Rbuffer;

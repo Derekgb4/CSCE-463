@@ -89,8 +89,14 @@ int main(int argc, char* argv[])
         if (status == INVALID_NAME) {
             cout << "Main:\tconnect failed with status 3" << endl;
             return status;
+        }if (status == FAILED_SEND) {
+            cout << "Main:\tconnect failed with status 4" << endl;
+            return status;
         }if (status == TIMEOUT) {
             cout << "Main:\tconnect failed with status 5" << endl;
+            return status;
+        }if (status == FAILED_RECV) {
+            cout << "Main:\tconnect failed with status 6" << endl;
             return status;
         }
        
@@ -101,7 +107,8 @@ int main(int argc, char* argv[])
     UINT64 byteBufferSize = dwordBufSize << 2; // convert to bytes 
 
     UINT64 off = 0; // current position in buffer
-    while (off < byteBufferSize)
+    /*  Send() will be implemented in p2
+    while (off < byteBufferSize) 
     {
         // decide the size of next chunk
         int bytes = min(byteBufferSize - off, MAX_PKT_SIZE - sizeof(SenderDataHeader));
@@ -122,13 +129,14 @@ int main(int argc, char* argv[])
         }
             // error handing: print status and quit
             off += bytes;
-    }
+    } */
     if ((status = ss.Close(connection)) != STATUS_OK) {
         if (status == NOT_CONNECTED) {
             cout << "status code Not Connected when closed was called" << endl;
         }
     }
     else(connection = 0);
+    
 
         // error handing: print status and quit
 }

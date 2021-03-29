@@ -1,0 +1,16 @@
+﻿  Hw3.cpp
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(10,10): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\SenderSocket.h(117,20): warning C4244: 'initializing': conversion from 'clock_t' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\SenderSocket.h(142,23): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\SenderSocket.h(153,20): warning C4244: 'initializing': conversion from 'clock_t' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\SenderSocket.h(202,22): warning C4244: 'initializing': conversion from 'clock_t' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\SenderSocket.h(211,22): warning C4244: 'initializing': conversion from 'clock_t' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(44,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(45,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(46,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(47,22): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(61,23): warning C4244: '=': conversion from 'UINT64' to 'DWORD', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(65,20): warning C4244: 'initializing': conversion from 'clock_t' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\Hw3.cpp(74,20): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Users\Renee\Desktop\463 Hw3\Hw3\Hw3\SenderSocket.h(224): warning C4715: 'SenderSocket::Open': not all control paths return a value
+  Hw3.vcxproj -> C:\Users\Renee\Desktop\463 Hw3\Hw3\x64\Debug\Hw3.exe
